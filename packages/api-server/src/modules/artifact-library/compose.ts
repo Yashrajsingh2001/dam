@@ -183,7 +183,6 @@ export function composeShareAuth(opts: ComposeShareAuthOpts): ShareAuthService {
 }
 
 export function composeShareBridge(opts: {
-  featureOn: (owner: string) => Promise<boolean>;
   ensureReady: (agentId: string) => Promise<void>;
   agentApi: AgentApiClient;
   makeAcpClient: AcpClientFactory;
@@ -191,7 +190,6 @@ export function composeShareBridge(opts: {
   attendance: ChannelTurnAttendance;
 }): ShareBridgeService {
   return createShareBridgeService({
-    featureOn: opts.featureOn,
     ensureReady: opts.ensureReady,
     agentApi: opts.agentApi,
     prompts: createViewerPromptDelivery({

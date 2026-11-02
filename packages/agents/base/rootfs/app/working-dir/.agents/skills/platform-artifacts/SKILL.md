@@ -4,9 +4,9 @@ description: >
   Write interactive HTML artifacts: buttons that send prompts to the open chat,
   and pages that share state with the agent (content both the page and the
   agent read and change) through a small HTTP server the agent runs.
-  Use
-  only when the user explicitly requests this experimental capability and has
-  enabled Interactive artifacts; ordinary artifacts do not need this skill.
+  Use when a page must act or keep state with the agent, such as a dashboard
+  whose buttons ask the agent to do something; a page with no reason to talk to
+  the agent stays plain and does not need this skill.
 ---
 
 Publish with `create_artifact({ ..., interactive: true })`.
@@ -27,13 +27,13 @@ Call it from a button click or a form handler that prevents the default submissi
 </button>
 ```
 
-The owner must enable Interactive artifacts and open the latest artifact version beside an existing chat with its publishing agent.
+The owner must open the latest artifact version beside an existing chat with its publishing agent.
 The prompt is sent as a normal chat message, using the chat's existing queue and error handling.
 On a page shared with named people, a viewer's prompt starts or continues that viewer's own Session with you instead, and the page shows them a short notice that it was sent.
 The agent replies in chat and may publish a new artifact version normally.
 The function returns no answer or delivery receipt; do not await a result or claim the task is complete.
 
-Buttons do not send prompts from library previews, historical versions, another agent's chat, or while the feature is disabled.
+Buttons do not send prompts from library previews, historical versions, or another agent's chat.
 Keep the page readable without this capability.
 Send prompts only in response to user actions, never automatically on load or on a timer.
 Prompts must be nonempty strings of at most 16,384 characters.

@@ -855,6 +855,13 @@
       "when": 1793102652509,
       "tag": "0121_binding_slots",
       "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1793627629065,
+      "tag": "0122_graduate_interactive_artifacts",
+      "breakpoints": true
     }
   ]
 }

@@ -359,7 +359,6 @@ import { oauthCallbackUrl } from "./modules/connections/domain/oauth-callback-ur
 import { SECRET_REQUEST_TTL_MS } from "./modules/connections/services/secret-requests.js";
 import { startAttachFirstProviderSaga } from "./modules/connections/sagas/attach-first-provider.js";
 import { sweepManagedConnections } from "./modules/connections/sagas/managed-connections.js";
-import { composeFeaturesForOwner } from "./modules/features/index.js";
 import { createConnectionRulesSyncAdapter } from "./modules/egress-rules/compose.js";
 import {
   createAgentArtifactsSweeper,
@@ -1669,15 +1668,6 @@ export async function bootstrap() {
 
   const agentApiClient = createAgentApiClient(config.namespace);
   const shareBridge = composeShareBridge({
-    featureOn: async (owner) =>
-      (
-        await composeFeaturesForOwner({
-          db,
-          owner,
-          surface: "system",
-          modes: config.featureModes,
-        }).features.flags()
-      )["interactive-artifacts"],
     ensureReady: (agentId) => agentsRepo.ensureReady(agentId),
     agentApi: agentApiClient,
     makeAcpClient,
