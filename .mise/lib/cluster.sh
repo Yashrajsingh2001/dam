@@ -449,7 +449,11 @@ node_host_dirs_at_boot() {
     'start() {' "${lines[@]}" '}' |
     node_sh tee "$NODE_HOST_DIRS_SERVICE" >/dev/null
   node_sh chmod 755 "$NODE_HOST_DIRS_SERVICE"
-  node_sh rc-update add "$(basename "$NODE_HOST_DIRS_SERVICE")" default >/dev/null 2>&1 || true
+  if node_sh test -x /sbin/openrc-run; then
+    node_sh rc-update add "$(basename "$NODE_HOST_DIRS_SERVICE")" default >/dev/null 2>&1 || true
+  else
+    echo "WARNING: no OpenRC on the node, so nothing mounts the VM runner node directories after a reboot" >&2
+  fi
 }
 
 # NODE_IMAGE_GC_DROPIN: no image garbage collection in an Environment's k3s.
@@ -492,7 +496,11 @@ node_thp_always() {
     'start() { echo always > /sys/kernel/mm/transparent_hugepage/enabled; }' |
     node_sh tee "$NODE_THP_SERVICE" >/dev/null
   node_sh chmod 755 "$NODE_THP_SERVICE"
-  node_sh rc-update add "$(basename "$NODE_THP_SERVICE")" default >/dev/null 2>&1 || true
+  if node_sh test -x /sbin/openrc-run; then
+    node_sh rc-update add "$(basename "$NODE_THP_SERVICE")" default >/dev/null 2>&1 || true
+  else
+    echo "WARNING: no OpenRC on the node, so nothing turns huge pages on after a reboot" >&2
+  fi
   node_sh "$NODE_THP_SERVICE" restart >/dev/null 2>&1 || true
   node_sh grep -q '\[always\]' /sys/kernel/mm/transparent_hugepage/enabled ||
     { echo "FATAL: transparent huge pages did not turn on, so nested VMs boot past their 30 s window" >&2; return 1; }
