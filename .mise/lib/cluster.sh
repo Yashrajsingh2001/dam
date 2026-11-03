@@ -421,6 +421,35 @@ node_host_dirs() {
     node_sh mount --bind "$src" "$dir"
     NODE_MOUNTED+=("$dir")
   done
+  [ "$CLUSTER_TARGET" != environment ] || node_host_dirs_at_boot "$@"
+}
+
+# NODE_HOST_DIRS_SERVICE: the bind mounts of node_host_dirs, made again at
+# every boot of an Environment, before k3s. An Environment reboots each time
+# it wakes, and its mounts go with the machine: the VM runner pod then mounts
+# the overlay itself, fails with "MOUNT_ATTR_IDMAP ... invalid argument" and
+# runs no machine until an install mounts them again (#6199).
+NODE_HOST_DIRS_SERVICE=/etc/init.d/platform-host-dirs
+
+# node_host_dirs_at_boot <dir>...: writes NODE_HOST_DIRS_SERVICE for every
+# directory that is a bind mount from $NODE_HOME_SHARE now, and puts it in the
+# default runlevel.
+node_host_dirs_at_boot() {
+  local dir lines=()
+  for dir in "$@"; do
+    [ -n "$dir" ] || continue
+    node_sh mountpoint -q "$dir" 2>/dev/null || continue
+    lines+=("  mountpoint -q $dir || mount --bind $NODE_HOME_SHARE/host-$(basename "$dir") $dir")
+  done
+  [ ${#lines[@]} -gt 0 ] || return 0
+  printf '%s\n' '#!/sbin/openrc-run' \
+    "# The VM runners' node directories, on the home disk (cluster:install)." \
+    'description="VM runner node directories on the home disk"' \
+    'depend() { before k3s; }' \
+    'start() {' "${lines[@]}" '}' |
+    node_sh tee "$NODE_HOST_DIRS_SERVICE" >/dev/null
+  node_sh chmod 755 "$NODE_HOST_DIRS_SERVICE"
+  node_sh rc-update add "$(basename "$NODE_HOST_DIRS_SERVICE")" default >/dev/null 2>&1 || true
 }
 
 # NODE_IMAGE_GC_DROPIN: no image garbage collection in an Environment's k3s.
